@@ -79,7 +79,7 @@
     function getDeviceId() {
       let id = localStorage.getItem("fishtime_device_id");
       if (!id) {
-        id = "WEB-" + crypto.randomUUID();
+        id = "WEB-" + crypto.randid = "WEB-" + Math.random().toString(36).substring(2, 12);omUUID();
         localStorage.setItem("fishtime_device_id", id);
       }
       return id;
