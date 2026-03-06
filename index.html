@@ -5,103 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FishTime</title>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #08111f 0%, #0b1220 100%);
+      background:
+        radial-gradient(circle at top, rgba(37, 99, 235, 0.18), transparent 35%),
+        linear-gradient(180deg, #050b14 0%, #08111f 45%, #0b1220 100%);
       color: white;
+      overflow-x: hidden;
     }
+
     .container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 20px 80px;
+      padding: 30px 20px 80px;
     }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0 20px;
+    }
+
+    .brand {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      text-decoration: none;
+      color: white;
+      padding: 13px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      display: inline-block;
+      transition: 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: #2563eb;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
     .hero {
+      min-height: 88vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      padding: 60px 0 30px;
+      position: relative;
+      overflow: hidden;
     }
-    .hero h1 {
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 380px;
+      height: 380px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      z-index: 0;
+      animation: floatGlow 7s ease-in-out infinite;
+    }
+
+    .hero::before {
+      background: #2563eb;
+      top: 10%;
+      left: -80px;
+    }
+
+    .hero::after {
+      background: #0ea5e9;
+      right: -100px;
+      bottom: 10%;
+      animation-delay: 2s;
+    }
+
+    @keyframes floatGlow {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-18px) scale(1.05); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+
+    .logo-ring {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 45%, rgba(255,255,255,0.02) 100%);
+      box-shadow:
+        0 0 35px rgba(37,99,235,0.20),
+        0 0 90px rgba(14,165,233,0.10);
+      animation: pulseRing 4s ease-in-out infinite;
+    }
+
+    .logo-ring::before {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.06);
+      animation: spinSlow 14s linear infinite;
+    }
+
+    .logo-ring::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(37,99,235,0.28);
+      animation: spinSlowReverse 11s linear infinite;
+    }
+
+    @keyframes pulseRing {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-6px) scale(1.02); }
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinSlowReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    .hero-logo {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 22px rgba(37,99,235,0.35));
+      animation: logoFloat 4.2s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    h1 {
       font-size: 64px;
-      margin: 0 0 16px;
+      margin: 0 0 14px;
+      letter-spacing: 1px;
     }
-    .hero p {
-      color: #9ca3af;
+
+    .subtitle {
       font-size: 20px;
+      color: #9ca3af;
       max-width: 760px;
-      margin: 0 auto 30px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
     }
-    .buttons {
+
+    .hero-buttons {
       display: flex;
       gap: 14px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-top: 25px;
+      margin-top: 16px;
     }
-    .btn {
-      text-decoration: none;
-      color: white;
-      padding: 14px 28px;
-      border-radius: 10px;
-      font-weight: bold;
-      display: inline-block;
+
+    .features {
+      margin-top: 20px;
     }
-    .btn-primary { background: #2563eb; }
-    .btn-primary:hover { background: #1d4ed8; }
-    .btn-secondary { background: #111827; border: 1px solid #1f2937; }
-    .btn-secondary:hover { background: #1a2436; }
+
+    .section-title {
+      text-align: center;
+      font-size: 34px;
+      margin: 0 0 12px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: #9ca3af;
+      margin: 0 0 28px;
+    }
 
     .cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
-      margin-top: 60px;
     }
+
     .card {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 22px;
+      backdrop-filter: blur(8px);
     }
+
     .card h3 {
       margin-top: 0;
       margin-bottom: 12px;
       font-size: 20px;
     }
+
     .card p {
       margin: 0;
       color: #9ca3af;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     .video-section {
       margin-top: 70px;
       text-align: center;
     }
-    .video-section h2 {
-      font-size: 36px;
-      margin-bottom: 10px;
-    }
-    .video-section p {
-      color: #9ca3af;
-      margin-bottom: 20px;
-    }
+
     .video-box {
-      background: #050b14;
-      border: 1px solid #1f2937;
-      border-radius: 18px;
-      padding: 18px;
-      max-width: 900px;
+      max-width: 920px;
       margin: 0 auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 18px;
     }
+
     .video-frame {
       width: 100%;
-      aspect-ratio: 16 / 9;
-      border: 0;
-      border-radius: 12px;
+      aspect-ratio: 16/9;
+      border: none;
+      border-radius: 14px;
       background: #000;
     }
+
     .video-actions {
       margin-top: 16px;
       display: flex;
@@ -110,80 +294,109 @@
       flex-wrap: wrap;
     }
 
-    .pricing {
-      margin-top: 70px;
-    }
-    .pricing h2 {
-      text-align: center;
-      font-size: 36px;
-      margin-bottom: 24px;
-    }
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-    .price-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 22px;
-      text-align: center;
-    }
-    .price-card h3 {
-      margin: 0 0 10px;
-    }
-    .price-card p {
-      color: #9ca3af;
-      margin: 0;
-    }
-
     .footer {
       margin-top: 80px;
       text-align: center;
       color: #6b7280;
       font-size: 14px;
+      padding-bottom: 20px;
     }
 
     @media (max-width: 900px) {
-      .cards, .pricing-grid { grid-template-columns: 1fr; }
-      .hero h1 { font-size: 42px; }
-      .hero p { font-size: 17px; }
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+
+      .subtitle {
+        font-size: 17px;
+      }
+
+      .logo-ring {
+        width: 180px;
+        height: 180px;
+      }
+
+      .hero-logo {
+        width: 122px;
+        height: 122px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        gap: 14px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="topbar">
+      <div class="brand">FishTime</div>
+      <div class="nav-buttons">
+        <a class="btn btn-secondary" href="login.html">Giriş Yap</a>
+        <a class="btn btn-primary" href="register.html">Kayıt Ol</a>
+      </div>
+    </div>
+
     <section class="hero">
-      <h1>FishTime</h1>
-      <p>
-        FishTime üyelik sistemi, giriş paneli, kod aktivasyonu ve düzenli kullanım deneyimi ile
-        profesyonel bir FishTime altyapısı sunar.
+      <div class="hero-content">
+        <div class="logo-wrap">
+          <div class="logo-ring">
+            <img src="logo.png" alt="FishTime Logo" class="hero-logo">
+          </div>
+        </div>
+
+        <h1>FishTime</h1>
+        <p class="subtitle">
+          Hesap tabanlı üyelik sistemi, aktivasyon kodları, kurulum desteği ve profesyonel kontrol paneli ile
+          FishTime deneyimini tek merkezden yönetin.
+        </p>
+
+        <div class="hero-buttons">
+          <a class="btn btn-primary" href="login.html">Giriş Yap</a>
+          <a class="btn btn-secondary" href="register.html">Kayıt Ol</a>
+          <a class="btn btn-secondary" href="#setup">Kurulum Videosu</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2 class="section-title">FishTime Neler Sunar?</h2>
+      <p class="section-sub">
+        Profesyonel üyelik yönetimi ve düzenli kullanım için ihtiyacın olan temel yapı.
       </p>
-      <div class="buttons">
-        <a class="btn btn-primary" href="login.html">Giriş Yap</a>
-        <a class="btn btn-secondary" href="register.html">Kayıt Ol</a>
+
+      <div class="cards">
+        <div class="card">
+          <h3>Hesap Tabanlı Kullanım</h3>
+          <p>
+            Kullanıcılar e-posta ve şifre ile giriş yapar. Tüm üyelik süresi ve işlemler hesap üzerinden yönetilir.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Kod Aktivasyon Sistemi</h3>
+          <p>
+            2 saat, 1 gün, 7 gün, 15 gün ve 30 günlük kodlar ile üyelikleri kontrollü şekilde yönetebilirsin.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Profesyonel Panel</h3>
+          <p>
+            Kalan süre, hesap durumu, indirme alanı, kod kullanımı ve hesap yönetimi tek panelde toplanır.
+          </p>
+        </div>
       </div>
     </section>
 
-    <section class="cards">
-      <div class="card">
-        <h3>Hesap Tabanlı Kullanım</h3>
-        <p>Kullanıcılar e-posta ve şifre ile giriş yapar. Üyelik süresi hesaba bağlı olarak çalışır.</p>
-      </div>
-      <div class="card">
-        <h3>Kod Aktivasyon Sistemi</h3>
-        <p>2 saat, 1 gün, 7 gün, 15 gün ve 30 günlük kodlar kolayca tanımlanabilir.</p>
-      </div>
-      <div class="card">
-        <h3>Profesyonel Yönetim</h3>
-        <p>Kullanıcı paneli, kalan süre, kod kullanımı ve yönetim altyapısı tek merkezden yönetilir.</p>
-      </div>
-    </section>
-
-    <section class="video-section">
-      <h2>Kurulum Videosu</h2>
-      <p>Kurulumu adım adım görmek için videoyu izleyin veya YouTube üzerinden açın.</p>
+    <section class="video-section" id="setup">
+      <h2 class="section-title">Kurulum Videosu</h2>
+      <p class="section-sub">
+        Kurulumu adım adım izlemek için videoyu açabilir veya YouTube üzerinden tam ekranda görüntüleyebilirsin.
+      </p>
 
       <div class="video-box">
         <iframe
@@ -195,29 +408,7 @@
 
         <div class="video-actions">
           <a class="btn btn-primary" href="https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID" target="_blank">YouTube'da Aç</a>
-          <a class="btn btn-secondary" href="login.html">Giriş Yap</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="pricing">
-      <h2>Paketler</h2>
-      <div class="pricing-grid">
-        <div class="price-card">
-          <h3>1 Gün</h3>
-          <p>Günlük kullanım için ideal kısa süreli paket.</p>
-        </div>
-        <div class="price-card">
-          <h3>7 Gün</h3>
-          <p>Haftalık kullanım için dengeli ve pratik çözüm.</p>
-        </div>
-        <div class="price-card">
-          <h3>15 Gün</h3>
-          <p>Daha uzun kullanım isteyenler için uygun paket.</p>
-        </div>
-        <div class="price-card">
-          <h3>30 Gün</h3>
-          <p>Düzenli kullanıcılar için en uzun standart üyelik paketi.</p>
+          <a class="btn btn-secondary" href="login.html">Panele Git</a>
         </div>
       </div>
     </section>
