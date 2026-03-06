@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FishTime - Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #08111f;
+      color: white;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 { margin: 0; }
+    .btn {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-dark { background: #111827; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card, .section {
+      background: #0f172a;
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .card h3 {
+      margin-top: 0;
+      font-size: 15px;
+      color: #9ca3af;
+    }
+    .value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .section {
+      margin-top: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #243041;
+      background: #0b1220;
+      color: white;
+    }
+    .msg {
+      margin-top: 8px;
+      color: #93c5fd;
+      min-height: 20px;
+    }
+    .download-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>FishTime Panel</h1>
+      <button class="btn btn-dark" onclick="logout()">Çıkış Yap</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Hesap</h3>
+        <div class="value" id="emailValue">-</div>
+      </div>
+      <div class="card">
+        <h3>Durum</h3>
+        <div class="value" id="statusValue">-</div>
+      </div>
+      <div class="card">
+        <h3>Kalan Süre</h3>
+        <div class="value" id="remainingValue">-</div>
+      </div>
+      <div class="card">
+        <h3>Cihaz</h3>
+        <div class="value" id="deviceValue">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Kod Kullan</h2>
+      <input id="redeemCode" placeholder="Aktivasyon kodunu gir" />
+      <button class="btn" onclick="redeemCode()">Kodu Kullan</button>
+      <div class="msg" id="redeemMsg"></div>
+    </div>
+
+    <div class="section">
+      <h2>İndir</h2>
+      <div class="download-box">
+        <div>FishTime kurulum dosyasını buradan indir.</div>
+        <a href="#" class="btn" style="text-decoration:none;">Uygulamayı İndir</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Şifre Değiştir</h2>
+      <input id="currentPassword" type="password" placeholder="Mevcut şifre" />
+      <input id="newPassword" type="password" placeholder="Yeni şifre" />
+      <button class="btn" onclick="changePassword()">Şifreyi Güncelle</button>
+      <div class="msg" id="passwordMsg"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    function getToken() {
+      return localStorage.getItem("fishtime_token");
+    }
+
+    function logout() {
+      localStorage.removeItem("fishtime_token");
+      window.location.href = "login.html";
+    }
+
+    function formatRemaining(sec) {
+      sec = Math.max(0, Number(sec || 0));
+      const days = Math.floor(sec / 86400);
+      const hours = Math.floor((sec % 86400) / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+      return `${days}g ${hours}s ${mins}dk`;
+    }
+
+    async function loadMe() {
+      const token = getToken();
+      if (!token) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/v1/me`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        logout();
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("emailValue").textContent = data.email || "-";
+      document.getElementById("statusValue").textContent = data.ok ? "Aktif" : "Pasif";
+      document.getElementById("remainingValue").textContent = formatRemaining(data.remaining_seconds);
+      document.getElementById("deviceValue").textContent = `${data.device_count}/${data.device_limit}`;
+    }
+
+    async function redeemCode() {
+      const token = getToken();
+      const code = document.getElementById("redeemCode").value.trim();
+      const msg = document.getElementById("redeemMsg");
+      msg.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/v1/redeem`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ code })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.textContent = data.detail || "Kod kullanılamadı.";
+          return;
+        }
+
+        msg.textContent = "Kod başarıyla işlendi.";
+        loadMe();
+      } catch (e) {
+        msg.textContent = "Sunucuya bağlanılamadı.";
+      }
+    }
+
+    async function changePassword() {
+      const token = getToken();
+      const current_password = document.getElementById("currentPassword").value.trim();
+      const new_password = document.getElementById("newPassword").value.trim();
+      const msg = document.getElementById("passwordMsg");
+      msg.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/v1/change-password`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ current_password, new_password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.textContent = data.detail || "Şifre değiştirilemedi.";
+          return;
+        }
+
+        msg.textContent = "Şifre başarıyla değiştirildi.";
+      } catch (e) {
+        msg.textContent = "Sunucuya bağlanılamadı.";
+      }
+    }
+
+    loadMe();
+  </script>
+</body>
+</html>
