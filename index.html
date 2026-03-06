@@ -1,71 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>FishTime</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FishTime</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #08111f 0%, #0b1220 100%);
+      color: white;
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+    .hero {
+      text-align: center;
+      padding: 60px 0 30px;
+    }
+    .hero h1 {
+      font-size: 64px;
+      margin: 0 0 16px;
+    }
+    .hero p {
+      color: #9ca3af;
+      font-size: 20px;
+      max-width: 760px;
+      margin: 0 auto 30px;
+    }
+    .buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 25px;
+    }
+    .btn {
+      text-decoration: none;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .btn-primary { background: #2563eb; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #111827; border: 1px solid #1f2937; }
+    .btn-secondary:hover { background: #1a2436; }
 
-<style>
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 60px;
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 22px;
+    }
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+    .card p {
+      margin: 0;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
 
-body{
-background:#0b0f1a;
-color:white;
-font-family:Arial;
-text-align:center;
-padding-top:120px;
-}
+    .video-section {
+      margin-top: 70px;
+      text-align: center;
+    }
+    .video-section h2 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+    .video-section p {
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+    .video-box {
+      background: #050b14;
+      border: 1px solid #1f2937;
+      border-radius: 18px;
+      padding: 18px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .video-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 12px;
+      background: #000;
+    }
+    .video-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-h1{
-font-size:60px;
-margin-bottom:20px;
-}
+    .pricing {
+      margin-top: 70px;
+    }
+    .pricing h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 24px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .price-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 22px;
+      text-align: center;
+    }
+    .price-card h3 {
+      margin: 0 0 10px;
+    }
+    .price-card p {
+      color: #9ca3af;
+      margin: 0;
+    }
 
-p{
-color:#9ca3af;
-font-size:20px;
-}
+    .footer {
+      margin-top: 80px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
 
-button{
-background:#2563eb;
-border:none;
-padding:15px 30px;
-margin:10px;
-border-radius:8px;
-font-size:18px;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#1d4ed8;
-}
-
-.video{
-margin-top:60px;
-}
-
-</style>
-
+    @media (max-width: 900px) {
+      .cards, .pricing-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 42px; }
+      .hero p { font-size: 17px; }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <section class="hero">
+      <h1>FishTime</h1>
+      <p>
+        FishTime üyelik sistemi, giriş paneli, kod aktivasyonu ve düzenli kullanım deneyimi ile
+        profesyonel bir FishTime altyapısı sunar.
+      </p>
+      <div class="buttons">
+        <a class="btn btn-primary" href="login.html">Giriş Yap</a>
+        <a class="btn btn-secondary" href="register.html">Kayıt Ol</a>
+      </div>
+    </section>
 
-<h1>FishTime</h1>
+    <section class="cards">
+      <div class="card">
+        <h3>Hesap Tabanlı Kullanım</h3>
+        <p>Kullanıcılar e-posta ve şifre ile giriş yapar. Üyelik süresi hesaba bağlı olarak çalışır.</p>
+      </div>
+      <div class="card">
+        <h3>Kod Aktivasyon Sistemi</h3>
+        <p>2 saat, 1 gün, 7 gün, 15 gün ve 30 günlük kodlar kolayca tanımlanabilir.</p>
+      </div>
+      <div class="card">
+        <h3>Profesyonel Yönetim</h3>
+        <p>Kullanıcı paneli, kalan süre, kod kullanımı ve yönetim altyapısı tek merkezden yönetilir.</p>
+      </div>
+    </section>
 
-<p>FishTime otomasyon sistemi</p>
+    <section class="video-section">
+      <h2>Kurulum Videosu</h2>
+      <p>Kurulumu adım adım görmek için videoyu izleyin veya YouTube üzerinden açın.</p>
 
-<button onclick="alert('Login paneli yakında')">Giriş Yap</button>
+      <div class="video-box">
+        <iframe
+          class="video-frame"
+          src="https://www.youtube.com/embed/YOUTUBE_VIDEO_ID"
+          title="FishTime Kurulum Videosu"
+          allowfullscreen>
+        </iframe>
 
-<button onclick="alert('Register yakında')">Kayıt Ol</button>
+        <div class="video-actions">
+          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID" target="_blank">YouTube'da Aç</a>
+          <a class="btn btn-secondary" href="login.html">Giriş Yap</a>
+        </div>
+      </div>
+    </section>
 
-<div class="video">
+    <section class="pricing">
+      <h2>Paketler</h2>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <h3>1 Gün</h3>
+          <p>Günlük kullanım için ideal kısa süreli paket.</p>
+        </div>
+        <div class="price-card">
+          <h3>7 Gün</h3>
+          <p>Haftalık kullanım için dengeli ve pratik çözüm.</p>
+        </div>
+        <div class="price-card">
+          <h3>15 Gün</h3>
+          <p>Daha uzun kullanım isteyenler için uygun paket.</p>
+        </div>
+        <div class="price-card">
+          <h3>30 Gün</h3>
+          <p>Düzenli kullanıcılar için en uzun standart üyelik paketi.</p>
+        </div>
+      </div>
+    </section>
 
-<h2>Kurulum Videosu</h2>
-
-<iframe width="700" height="400"
-src="https://www.youtube.com/embed/YOUTUBE_VIDEO_ID">
-</iframe>
-
-</div>
-
+    <div class="footer">
+      © 2026 FishTime - Tüm hakları saklıdır.
+    </div>
+  </div>
 </body>
 </html>
