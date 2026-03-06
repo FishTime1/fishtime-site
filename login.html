@@ -22,17 +22,10 @@
       border: 1px solid #1f2937;
       border-radius: 16px;
       padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
     }
-    h1 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    p {
-      text-align: center;
-      color: #9ca3af;
-      margin-bottom: 24px;
-    }
+    h1 { margin-top: 0; text-align: center; }
+    p { text-align: center; color: #9ca3af; }
     input {
       width: 100%;
       padding: 14px;
@@ -56,26 +49,70 @@
       text-align: center;
       margin-top: 10px;
     }
-    a.link {
-      display: block;
-      text-align: center;
-      margin-top: 16px;
+    a.btn { background: #111827; }
+    .msg {
+      margin-top: 12px;
       color: #93c5fd;
-      text-decoration: none;
+      text-align: center;
+      min-height: 20px;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Giriş Yap</h1>
-    <p>FishTime hesabınız ile giriş yapın.</p>
+    <p>FishTime hesabın ile giriş yap.</p>
 
-    <input type="email" placeholder="E-posta" />
-    <input type="password" placeholder="Şifre" />
-    <button>Giriş Yap</button>
+    <input id="email" type="email" placeholder="E-posta" />
+    <input id="password" type="password" placeholder="Şifre" />
 
-    <a class="btn" href="register.html" style="background:#111827;">Kayıt Ol</a>
-    <a class="link" href="index.html">Ana Sayfaya Dön</a>
+    <button onclick="loginUser()">Giriş Yap</button>
+    <a class="btn" href="register.html">Kayıt Ol</a>
+    <div class="msg" id="msg"></div>
   </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    function getDeviceId() {
+      let id = localStorage.getItem("fishtime_device_id");
+      if (!id) {
+        id = "WEB-" + crypto.randomUUID();
+        localStorage.setItem("fishtime_device_id", id);
+      }
+      return id;
+    }
+
+    async function loginUser() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/v1/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            device_id: getDeviceId()
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.textContent = data.detail || "Giriş başarısız.";
+          return;
+        }
+
+        localStorage.setItem("fishtime_token", data.token);
+        window.location.href = "dashboard.html";
+      } catch (e) {
+        msg.textContent = "Sunucuya bağlanılamadı.";
+      }
+    }
+  </script>
 </body>
 </html>
