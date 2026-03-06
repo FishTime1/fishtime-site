@@ -5,36 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FishTime</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top, rgba(37, 99, 235, 0.18), transparent 35%),
-        linear-gradient(180deg, #050b14 0%, #08111f 45%, #0b1220 100%);
       color: white;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(37, 99, 235, 0.18), transparent 25%),
+        radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.16), transparent 28%),
+        linear-gradient(180deg, #040913 0%, #08111f 45%, #0b1220 100%);
       overflow-x: hidden;
+    }
+
+    .bg-stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, white, transparent),
+        radial-gradient(2px 2px at 120px 80px, white, transparent),
+        radial-gradient(1.5px 1.5px at 220px 160px, white, transparent),
+        radial-gradient(2px 2px at 340px 40px, white, transparent),
+        radial-gradient(1.5px 1.5px at 500px 120px, white, transparent),
+        radial-gradient(2px 2px at 700px 70px, white, transparent),
+        radial-gradient(1.5px 1.5px at 900px 180px, white, transparent);
+      background-size: 1000px 220px;
+      animation: starShift 18s linear infinite;
+    }
+
+    @keyframes starShift {
+      from { transform: translateY(0); }
+      to { transform: translateY(30px); }
     }
 
     .container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 30px 20px 80px;
+      padding: 28px 20px 80px;
+      position: relative;
+      z-index: 2;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0 20px;
+      gap: 16px;
+      padding: 6px 0 20px;
     }
 
     .brand {
@@ -56,7 +78,7 @@
       border-radius: 12px;
       font-weight: 700;
       display: inline-block;
-      transition: 0.2s ease;
+      transition: 0.22s ease;
       border: 1px solid transparent;
     }
 
@@ -65,11 +87,12 @@
     }
 
     .btn-primary {
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 8px 30px rgba(37, 99, 235, 0.28);
     }
 
     .btn-primary:hover {
-      background: #1d4ed8;
+      box-shadow: 0 10px 36px rgba(37, 99, 235, 0.4);
     }
 
     .btn-secondary {
@@ -88,130 +111,137 @@
       justify-content: center;
       text-align: center;
       position: relative;
-      overflow: hidden;
     }
 
-    .hero::before,
-    .hero::after {
-      content: "";
+    .hero-blur-left,
+    .hero-blur-right {
       position: absolute;
-      width: 380px;
-      height: 380px;
+      width: 360px;
+      height: 360px;
       border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.25;
+      filter: blur(90px);
+      opacity: 0.28;
       z-index: 0;
       animation: floatGlow 7s ease-in-out infinite;
     }
 
-    .hero::before {
+    .hero-blur-left {
       background: #2563eb;
-      top: 10%;
-      left: -80px;
+      left: -60px;
+      top: 80px;
     }
 
-    .hero::after {
+    .hero-blur-right {
       background: #0ea5e9;
-      right: -100px;
-      bottom: 10%;
+      right: -80px;
+      bottom: 100px;
       animation-delay: 2s;
     }
 
     @keyframes floatGlow {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-18px) scale(1.05); }
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.04); }
     }
 
     .hero-content {
-      position: relative;
-      z-index: 1;
-      max-width: 900px;
+      max-width: 920px;
       width: 100%;
+      position: relative;
+      z-index: 2;
     }
 
     .logo-wrap {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 26px;
+      margin-bottom: 28px;
     }
 
-    .logo-ring {
+    .logo-shell {
       position: relative;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
+      width: 260px;
+      height: 260px;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+    }
+
+    .logo-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
       background:
-        radial-gradient(circle, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 45%, rgba(255,255,255,0.02) 100%);
+        radial-gradient(circle, rgba(37,99,235,0.18) 0%, rgba(14,165,233,0.08) 45%, rgba(255,255,255,0.02) 100%);
       box-shadow:
-        0 0 35px rgba(37,99,235,0.20),
-        0 0 90px rgba(14,165,233,0.10);
-      animation: pulseRing 4s ease-in-out infinite;
+        0 0 40px rgba(37,99,235,0.30),
+        0 0 120px rgba(14,165,233,0.14);
+      animation: pulseShell 4s ease-in-out infinite;
     }
 
-    .logo-ring::before {
+    .logo-shell::after {
       content: "";
       position: absolute;
-      inset: -10px;
+      inset: -12px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.06);
-      animation: spinSlow 14s linear infinite;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top-color: rgba(37,99,235,0.55);
+      border-bottom-color: rgba(14,165,233,0.25);
+      animation: spinShell 13s linear infinite;
     }
 
-    .logo-ring::after {
-      content: "";
+    .ring-2 {
       position: absolute;
-      inset: 12px;
+      inset: 18px;
       border-radius: 50%;
-      border: 1px solid rgba(37,99,235,0.28);
-      animation: spinSlowReverse 11s linear infinite;
+      border: 1px solid rgba(37,99,235,0.22);
+      animation: spinShellReverse 9s linear infinite;
     }
 
-    @keyframes pulseRing {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-6px) scale(1.02); }
+    @keyframes pulseShell {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
     }
 
-    @keyframes spinSlow {
+    @keyframes spinShell {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
 
-    @keyframes spinSlowReverse {
+    @keyframes spinShellReverse {
       from { transform: rotate(360deg); }
       to { transform: rotate(0deg); }
     }
 
     .hero-logo {
-      width: 150px;
-      height: 150px;
+      width: 170px;
+      height: 170px;
       object-fit: contain;
-      filter: drop-shadow(0 0 22px rgba(37,99,235,0.35));
-      animation: logoFloat 4.2s ease-in-out infinite;
       position: relative;
-      z-index: 2;
+      z-index: 3;
+      filter:
+        drop-shadow(0 0 18px rgba(37,99,235,0.40))
+        drop-shadow(0 0 35px rgba(14,165,233,0.20));
+      animation: logoFloat 4s ease-in-out infinite;
     }
 
     @keyframes logoFloat {
-      0%, 100% { transform: translateY(0px); }
+      0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
 
     h1 {
-      font-size: 64px;
+      font-size: 68px;
       margin: 0 0 14px;
       letter-spacing: 1px;
     }
 
     .subtitle {
       font-size: 20px;
+      line-height: 1.65;
       color: #9ca3af;
       max-width: 760px;
-      margin: 0 auto 28px;
-      line-height: 1.6;
+      margin: 0 auto 30px;
     }
 
     .hero-buttons {
@@ -219,11 +249,11 @@
       gap: 14px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-top: 16px;
+      margin-top: 18px;
     }
 
     .features {
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .section-title {
@@ -250,6 +280,13 @@
       border-radius: 18px;
       padding: 22px;
       backdrop-filter: blur(8px);
+      transition: 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(37,99,235,0.28);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
     }
 
     .card h3 {
@@ -265,7 +302,7 @@
     }
 
     .video-section {
-      margin-top: 70px;
+      margin-top: 74px;
       text-align: center;
     }
 
@@ -280,7 +317,7 @@
 
     .video-frame {
       width: 100%;
-      aspect-ratio: 16/9;
+      aspect-ratio: 16 / 9;
       border: none;
       border-radius: 14px;
       background: #000;
@@ -303,36 +340,18 @@
     }
 
     @media (max-width: 900px) {
-      .cards {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 42px;
-      }
-
-      .subtitle {
-        font-size: 17px;
-      }
-
-      .logo-ring {
-        width: 180px;
-        height: 180px;
-      }
-
-      .hero-logo {
-        width: 122px;
-        height: 122px;
-      }
-
-      .topbar {
-        flex-direction: column;
-        gap: 14px;
-      }
+      .cards { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; }
+      h1 { font-size: 44px; }
+      .subtitle { font-size: 17px; }
+      .logo-shell { width: 210px; height: 210px; }
+      .hero-logo { width: 138px; height: 138px; }
     }
   </style>
 </head>
 <body>
+  <div class="bg-stars"></div>
+
   <div class="container">
     <div class="topbar">
       <div class="brand">FishTime</div>
@@ -343,16 +362,20 @@
     </div>
 
     <section class="hero">
+      <div class="hero-blur-left"></div>
+      <div class="hero-blur-right"></div>
+
       <div class="hero-content">
         <div class="logo-wrap">
-          <div class="logo-ring">
+          <div class="logo-shell">
+            <div class="ring-2"></div>
             <img src="logo.png" alt="FishTime Logo" class="hero-logo">
           </div>
         </div>
 
         <h1>FishTime</h1>
         <p class="subtitle">
-          Hesap tabanlı üyelik sistemi, aktivasyon kodları, kurulum desteği ve profesyonel kontrol paneli ile
+          Profesyonel üyelik sistemi, kullanıcı paneli, kurulum desteği ve aktivasyon kodlarıyla
           FishTime deneyimini tek merkezden yönetin.
         </p>
 
@@ -367,27 +390,21 @@
     <section class="features">
       <h2 class="section-title">FishTime Neler Sunar?</h2>
       <p class="section-sub">
-        Profesyonel üyelik yönetimi ve düzenli kullanım için ihtiyacın olan temel yapı.
+        Üyelik yönetimi, kod sistemi ve profesyonel kullanım için gerekli temel yapı.
       </p>
 
       <div class="cards">
         <div class="card">
-          <h3>Hesap Tabanlı Kullanım</h3>
-          <p>
-            Kullanıcılar e-posta ve şifre ile giriş yapar. Tüm üyelik süresi ve işlemler hesap üzerinden yönetilir.
-          </p>
+          <h3>Hesap Tabanlı Giriş</h3>
+          <p>Kullanıcılar e-posta ve şifre ile giriş yapar, tüm üyelik süreci hesap üzerinden yürür.</p>
         </div>
         <div class="card">
-          <h3>Kod Aktivasyon Sistemi</h3>
-          <p>
-            2 saat, 1 gün, 7 gün, 15 gün ve 30 günlük kodlar ile üyelikleri kontrollü şekilde yönetebilirsin.
-          </p>
+          <h3>Aktivasyon Kodları</h3>
+          <p>2 saat, 1 gün, 7 gün, 15 gün ve 30 günlük süre tanımları ile esnek kullanım sağlanır.</p>
         </div>
         <div class="card">
-          <h3>Profesyonel Panel</h3>
-          <p>
-            Kalan süre, hesap durumu, indirme alanı, kod kullanımı ve hesap yönetimi tek panelde toplanır.
-          </p>
+          <h3>Kontrol Paneli</h3>
+          <p>Kalan süre, cihaz limiti, kod kullanımı, indirme ve hesap işlemleri tek panelde toplanır.</p>
         </div>
       </div>
     </section>
@@ -395,7 +412,7 @@
     <section class="video-section" id="setup">
       <h2 class="section-title">Kurulum Videosu</h2>
       <p class="section-sub">
-        Kurulumu adım adım izlemek için videoyu açabilir veya YouTube üzerinden tam ekranda görüntüleyebilirsin.
+        Kurulumu adım adım izlemek için videoyu oynat veya YouTube'da aç.
       </p>
 
       <div class="video-box">
