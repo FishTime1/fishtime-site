@@ -15,6 +15,7 @@
       justify-content: center;
       min-height: 100vh;
     }
+
     .card {
       width: 100%;
       max-width: 450px;
@@ -24,8 +25,21 @@
       padding: 28px;
       box-shadow: 0 20px 60px rgba(0,0,0,.35);
     }
-    h1 { margin-top: 0; text-align: center; }
-    p { text-align: center; color: #9ca3af; }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      text-align: center;
+      color: #9ca3af;
+      margin-bottom: 24px;
+      font-size: 16px;
+    }
+
     input {
       width: 100%;
       padding: 14px;
@@ -34,13 +48,17 @@
       border: 1px solid #243041;
       background: #0b1220;
       color: white;
+      font-size: 16px;
+      box-sizing: border-box;
     }
-    button, a.btn {
+
+    button,
+    a.btn {
       width: 100%;
       padding: 14px;
       border-radius: 10px;
       border: none;
-      background: #2563eb;
+      background: #58d3ff;
       color: white;
       font-weight: bold;
       cursor: pointer;
@@ -48,14 +66,22 @@
       display: block;
       text-align: center;
       margin-top: 10px;
+      box-sizing: border-box;
+      font-size: 16px;
     }
-    a.btn { background: #111827; }
+
+    a.btn {
+      background: transparent;
+      color: white;
+    }
+
     .msg {
       margin-top: 12px;
       color: #93c5fd;
       text-align: center;
-      min-height: 20px;
+      min-height: 24px;
       white-space: pre-wrap;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -68,8 +94,9 @@
     <input id="password" type="password" placeholder="Şifre" />
     <input id="password2" type="password" placeholder="Şifre Tekrar" />
 
-    <button onclick="registerUser()">Kayıt Ol</button>
+    <button id="registerBtn">Kayıt Ol</button>
     <a class="btn" href="login.html">Giriş Sayfasına Git</a>
+
     <div class="msg" id="msg"></div>
   </div>
 
@@ -79,7 +106,7 @@
     function getDeviceId() {
       let id = localStorage.getItem("fishtime_device_id");
       if (!id) {
-        id = "WEB-" + crypto.randid = "WEB-" + Math.random().toString(36).substring(2, 12);omUUID();
+        id = "WEB-" + Math.random().toString(36).substring(2, 12);
         localStorage.setItem("fishtime_device_id", id);
       }
       return id;
@@ -90,6 +117,7 @@
       const password = document.getElementById("password").value.trim();
       const password2 = document.getElementById("password2").value.trim();
       const msg = document.getElementById("msg");
+
       msg.textContent = "";
 
       if (!email || !password || !password2) {
@@ -109,17 +137,18 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            email,
-            password,
+            email: email,
+            password: password,
             device_id: getDeviceId()
           })
         });
 
         const text = await res.text();
         let data = {};
+
         try {
           data = JSON.parse(text);
-        } catch (_) {
+        } catch (e) {
           data = { raw: text };
         }
 
@@ -138,6 +167,8 @@
         msg.textContent = "Sunucuya bağlanılamadı.\n" + (e.message || e);
       }
     }
+
+    document.getElementById("registerBtn").addEventListener("click", registerUser);
   </script>
 </body>
 </html>
