@@ -55,6 +55,7 @@
       color: #93c5fd;
       text-align: center;
       min-height: 20px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -104,7 +105,9 @@
       try {
         const res = await fetch(`${API_BASE}/v1/register`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             email,
             password,
@@ -112,10 +115,16 @@
           })
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try {
+          data = JSON.parse(text);
+        } catch (_) {
+          data = { raw: text };
+        }
 
         if (!res.ok) {
-          msg.textContent = data.detail || "Kayıt başarısız.";
+          msg.textContent = data.detail || data.raw || `Kayıt başarısız. (${res.status})`;
           return;
         }
 
@@ -123,8 +132,10 @@
         setTimeout(() => {
           window.location.href = "login.html";
         }, 1200);
+
       } catch (e) {
-        msg.textContent = "Sunucuya bağlanılamadı.";
+        console.error("REGISTER ERROR:", e);
+        msg.textContent = "Sunucuya bağlanılamadı.\n" + (e.message || e);
       }
     }
   </script>
