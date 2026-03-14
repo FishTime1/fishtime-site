@@ -1,11 +1,17 @@
 ﻿const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : "https://fishtime-api.onrender.com";
 const PLAN_LABELS = { trial_2h: "2 Saat", day_1: "1 Gün", day_7: "7 Gün", day_15: "15 Gün", day_30: "30 Gün" };
 const PLAN_SECONDS = { trial_2h: 7200, day_1: 86400, day_7: 604800, day_15: 1296000, day_30: 2592000 };
+const DEFAULT_SITE_CONFIG = {
+  setup_video_raw_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
+  setup_video_watch_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
+  setup_video_embed_url: "https://www.youtube.com/embed/jCRnwHDHFmA?start=225",
+};
 const TAB_META = {
   home: ["Ana Sayfa", "Sistemin genel özetini ve son hareketleri burada görürsün."],
   users: ["Kullanıcılar", "Üyelikleri yönet, süre ekle, cihaz sıfırla ve hesap sil."],
   messages: ["Mesajlar", "Kullanıcı konuşmalarını aç, cevap ver ve temizle."],
-  codes: ["Kod Üretici", "Yeni kod üret, listele ve gerektiğinde sil."]
+  codes: ["Kod Üretici", "Yeni kod üret, listele ve gerektiğinde sil."],
+  video: ["Kurulum Videosu", "Anasayfadaki kurulum videosunu YouTube linki ile yönet."]
 };
 
 const state = {
@@ -16,6 +22,7 @@ const state = {
   users: [],
   messages: [],
   codes: [],
+  siteConfig: { ...DEFAULT_SITE_CONFIG },
   selectedUserId: null,
   selectedConversationId: null,
   selectedMessageId: null,
@@ -67,6 +74,11 @@ const el = {
   codeSummaryList: document.getElementById("codeSummaryList"),
   codesTableBody: document.getElementById("codesTableBody"),
   codeCountBadge: document.getElementById("codeCountBadge"),
+  setupVideoUrlInput: document.getElementById("setupVideoUrlInput"),
+  saveVideoConfigButton: document.getElementById("saveVideoConfigButton"),
+  reloadVideoConfigButton: document.getElementById("reloadVideoConfigButton"),
+  videoConfigStatus: document.getElementById("videoConfigStatus"),
+  videoConfigDetail: document.getElementById("videoConfigDetail"),
   navButtons: [...document.querySelectorAll(".nav-btn")],
   tabs: [...document.querySelectorAll(".tab")],
 };
@@ -99,7 +111,8 @@ function mapError(detail) {
     message_required: "Mesaj boş bırakılamaz.",
     message_not_found: "Mesaj bulunamadı.",
     code_not_found: "Kod bulunamadı.",
-    invalid_plan: "Geçersiz plan seçildi."
+    invalid_plan: "Geçersiz plan seçildi.",
+    invalid_setup_video_url: "Geçerli bir YouTube linki gir."
   }[String(detail || "")] || String(detail || "Bilinmeyen hata");
 }
 function setLoginStatus(message, isError = false) { el.loginStatus.textContent = message || ""; el.loginStatus.classList.toggle("error", !!isError); }
@@ -107,7 +120,7 @@ function setGlobalStatus(message, isError = false) { el.globalStatus.textContent
 function clearSession() { state.token = ""; state.adminKey = ""; state.username = ""; sessionStorage.removeItem("ft_admin_token"); sessionStorage.removeItem("ft_admin_key"); sessionStorage.removeItem("ft_admin_username"); }
 function showLogin() { el.loginScreen.classList.remove("hidden"); el.appShell.classList.add("hidden"); el.sessionStatusText.textContent = "Giriş bekleniyor"; }
 function showApp() { el.loginScreen.classList.add("hidden"); el.appShell.classList.remove("hidden"); el.sessionChip.textContent = `Yönetici: ${state.username || "fishtimeadmincan"}`; el.sessionStatusText.textContent = "Yetkili oturum açık"; }
-function setActiveTab(tab) { el.navButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tab)); el.tabs.forEach((p) => p.classList.toggle("active", p.dataset.page === tab)); const [title, subtitle] = TAB_META[tab] || TAB_META.home; el.pageTitle.textContent = title; el.pageSubtitle.textContent = subtitle; }
+function setActiveTab(tab) { el.navButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tab)); el.tabs.forEach((p) => p.classList.toggle("active", p.dataset.page === tab)); const [title, subtitle] = TAB_META[tab] || TAB_META.home; el.pageTitle.textContent = title; el.pageSubtitle.textContent = subtitle; if (tab === "video") renderVideoSettings(); }
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {}); headers.set("Accept", "application/json"); if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json"); if (state.token) headers.set("X-Admin-Token", state.token); if (state.adminKey) headers.set("X-Admin-Key", state.adminKey);
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
@@ -120,6 +133,71 @@ function infoStatus(text) { return `<span class="loader"></span> ${html(text)}`;
 function getFilteredUsers() { const q = el.userSearchInput.value.trim().toLowerCase(); return q ? state.users.filter((u) => String(u.email || "").toLowerCase().includes(q)) : state.users; }
 function getFilteredMessages() { const q = el.messageSearchInput.value.trim().toLowerCase(); return q ? state.messages.filter((m) => `${m.email || ""} ${m.last_message || ""}`.toLowerCase().includes(q)) : state.messages; }
 function getFilteredCodes() { const q = el.codeSearchInput.value.trim().toLowerCase(); return q ? state.codes.filter((c) => String(c.code || "").toLowerCase().includes(q)) : state.codes; }
+function parseYouTubeTime(value) {
+  const raw = String(value || "").trim().replace(/^t=/, "");
+  if (!raw) return 0;
+  if (/^\d+$/.test(raw)) return Number(raw);
+  let total = 0;
+  const matches = [...raw.matchAll(/(\d+)(h|m|s)/gi)];
+  for (const match of matches) {
+    const amount = Number(match[1]);
+    const unit = match[2].toLowerCase();
+    if (unit === "h") total += amount * 3600;
+    if (unit === "m") total += amount * 60;
+    if (unit === "s") total += amount;
+  }
+  return total;
+}
+function buildYouTubeConfig(rawUrl) {
+  const raw = String(rawUrl || "").trim();
+  if (!raw) throw new Error("Geçerli bir YouTube linki gir.");
+  let url;
+  try { url = new URL(raw); } catch { throw new Error("Geçerli bir YouTube linki gir."); }
+  const host = url.hostname.replace(/^www\./, "").toLowerCase();
+  let videoId = "";
+  let start = 0;
+  if (url.searchParams.get("start")) start = parseYouTubeTime(url.searchParams.get("start"));
+  if (url.searchParams.get("t")) start = parseYouTubeTime(url.searchParams.get("t"));
+  if (host === "youtu.be") {
+    videoId = url.pathname.replace(/^\/+/, "").split("/")[0];
+  } else if (host.endsWith("youtube.com")) {
+    if (url.pathname === "/watch") videoId = url.searchParams.get("v") || "";
+    else if (url.pathname.startsWith("/embed/")) videoId = url.pathname.split("/")[2] || "";
+    else if (url.pathname.startsWith("/shorts/")) videoId = url.pathname.split("/")[2] || "";
+  }
+  if (!/^[A-Za-z0-9_-]{6,}$/.test(videoId)) throw new Error("Geçerli bir YouTube linki gir.");
+  let watch = `https://www.youtube.com/watch?v=${videoId}`;
+  let embed = `https://www.youtube.com/embed/${videoId}`;
+  if (start > 0) {
+    watch += `&t=${start}s`;
+    embed += `?start=${start}`;
+  }
+  return {
+    setup_video_raw_url: raw,
+    setup_video_watch_url: watch,
+    setup_video_embed_url: embed,
+  };
+}
+function setVideoConfigStatus(message, isError = false) {
+  if (!el.videoConfigStatus) return;
+  el.videoConfigStatus.textContent = message || "";
+  el.videoConfigStatus.classList.toggle("error", !!isError);
+}
+function renderVideoSettings() {
+  if (!el.videoConfigDetail || !el.setupVideoUrlInput) return;
+  const config = { ...DEFAULT_SITE_CONFIG, ...(state.siteConfig || {}) };
+  state.siteConfig = config;
+  if (document.activeElement !== el.setupVideoUrlInput) {
+    el.setupVideoUrlInput.value = config.setup_video_raw_url || config.setup_video_watch_url || "";
+  }
+  el.videoConfigDetail.innerHTML = `
+    <div class="section-head"><h3>Canlı Önizleme</h3></div>
+    <p class="brand-sub">Kaydettiğin video anasayfada kurulum videosu alanında gösterilir.</p>
+    <iframe class="admin-video-frame" src="${html(config.setup_video_embed_url)}" title="Kurulum Videosu Önizleme" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    <div class="link-card"><span>YouTube Linki</span><a href="${html(config.setup_video_watch_url)}" target="_blank" rel="noreferrer">${html(config.setup_video_watch_url)}</a></div>
+    <div class="link-card"><span>Embed Linki</span><div class="mono-link">${html(config.setup_video_embed_url)}</div></div>
+  `;
+}
 
 function renderHome() {
   const stats = state.stats || {};
@@ -235,14 +313,24 @@ async function refreshAllData(forceSelect = false) {
   if ((!state.token && !state.adminKey) || state.loading) return;
   state.loading = true; setGlobalStatus("Veriler yenileniyor..."); el.apiStatusText.innerHTML = infoStatus("API ile konuşuluyor");
   try {
-    const [stats, users, messages, codes] = await Promise.all([api("/v1/admin/stats"), api("/v1/admin/users"), api("/v1/admin/messages"), api("/v1/admin/codes")]);
-    state.stats = stats || {}; state.users = Array.isArray(users) ? users : []; state.messages = Array.isArray(messages) ? messages : []; state.codes = Array.isArray(codes) ? codes : [];
+    const [stats, users, messages, codes, siteConfig] = await Promise.all([
+      api("/v1/admin/stats"),
+      api("/v1/admin/users"),
+      api("/v1/admin/messages"),
+      api("/v1/admin/codes"),
+      api("/v1/admin/site-config").catch(() => state.siteConfig || DEFAULT_SITE_CONFIG),
+    ]);
+    state.stats = stats || {};
+    state.users = Array.isArray(users) ? users : [];
+    state.messages = Array.isArray(messages) ? messages : [];
+    state.codes = Array.isArray(codes) ? codes : [];
+    state.siteConfig = { ...DEFAULT_SITE_CONFIG, ...(siteConfig || {}) };
     if (forceSelect || !state.users.some((u) => u.id === state.selectedUserId)) state.selectedUserId = state.users[0]?.id ?? null;
     if (forceSelect || !state.messages.some((m) => m.user_id === state.selectedConversationId)) { state.selectedConversationId = state.messages[0]?.user_id ?? null; state.selectedMessageId = null; }
-    renderHome(); renderUsers(); await renderSelectedUser(); renderConversations(); await renderSelectedConversation(); renderCodes();
+    renderHome(); renderUsers(); await renderSelectedUser(); renderConversations(); await renderSelectedConversation(); renderCodes(); renderVideoSettings();
     el.apiStatusText.textContent = "Bağlı"; el.lastRefreshText.textContent = fmt(new Date().toISOString()); setGlobalStatus("Veriler güncel");
   } catch (err) {
-    el.apiStatusText.textContent = "Bağlantı sorunu"; setGlobalStatus(err.message, true); if (!state.token) showLogin();
+    el.apiStatusText.textContent = "Bağlantı sorunu"; setGlobalStatus(err.message, true); if (!state.token && !state.adminKey) showLogin();
   } finally { state.loading = false; }
 }
 
@@ -298,20 +386,57 @@ function bind() {
   el.messageRefreshButton.addEventListener("click", () => refreshAllData());
   el.codeRefreshButton.addEventListener("click", () => refreshAllData());
   el.createCodeButton.addEventListener("click", createCode);
-  el.logoutButton.addEventListener("click", () => { clearSession(); state.stats = null; state.users = []; state.messages = []; state.codes = []; state.selectedUserId = null; state.selectedConversationId = null; state.selectedMessageId = null; el.passwordInput.value = ""; showLogin(); setLoginStatus(""); });
+  if (el.saveVideoConfigButton) {
+    el.saveVideoConfigButton.addEventListener("click", async () => {
+      try {
+        const payload = buildYouTubeConfig(el.setupVideoUrlInput.value);
+        el.saveVideoConfigButton.disabled = true;
+        setVideoConfigStatus("Video ayarı kaydediliyor...");
+        const data = await api("/v1/admin/site-config", {
+          method: "POST",
+          body: JSON.stringify({
+            raw_url: payload.setup_video_raw_url,
+            watch_url: payload.setup_video_watch_url,
+            embed_url: payload.setup_video_embed_url,
+          }),
+        });
+        state.siteConfig = { ...DEFAULT_SITE_CONFIG, ...(data || payload) };
+        renderVideoSettings();
+        setVideoConfigStatus("Kurulum videosu güncellendi.");
+      } catch (err) {
+        setVideoConfigStatus(err.message, true);
+      } finally {
+        el.saveVideoConfigButton.disabled = false;
+      }
+    });
+  }
+  if (el.reloadVideoConfigButton) {
+    el.reloadVideoConfigButton.addEventListener("click", async () => {
+      try {
+        el.reloadVideoConfigButton.disabled = true;
+        setVideoConfigStatus("Video ayarı yenileniyor...");
+        const data = await api("/v1/admin/site-config");
+        state.siteConfig = { ...DEFAULT_SITE_CONFIG, ...(data || {}) };
+        renderVideoSettings();
+        setVideoConfigStatus("Güncel video ayarı yüklendi.");
+      } catch (err) {
+        setVideoConfigStatus(err.message, true);
+      } finally {
+        el.reloadVideoConfigButton.disabled = false;
+      }
+    });
+  }
+  el.logoutButton.addEventListener("click", () => { clearSession(); state.stats = null; state.users = []; state.messages = []; state.codes = []; state.siteConfig = { ...DEFAULT_SITE_CONFIG }; state.selectedUserId = null; state.selectedConversationId = null; state.selectedMessageId = null; el.passwordInput.value = ""; setVideoConfigStatus(""); renderVideoSettings(); showLogin(); setLoginStatus(""); });
   el.userSearchInput.addEventListener("input", renderUsers);
   el.messageSearchInput.addEventListener("input", renderConversations);
   el.codeSearchInput.addEventListener("input", renderCodes);
 }
 
 (async function bootstrap() {
+  renderVideoSettings();
   bind();
   el.usernameInput.value = state.username || "fishtimeadmincan";
   if (!state.token && !state.adminKey) { showLogin(); return; }
   showApp();
   try { await refreshAllData(true); } catch { showLogin(); }
 })();
-
-
-
-
