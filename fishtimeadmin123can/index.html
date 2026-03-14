@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>FishTime Admin</title>
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="brand-row">
+        <div class="logo-box"><img src="../logo.png" alt="FishTime" /></div>
+        <div>
+          <div class="brand-title">FishTime Admin</div>
+          <div class="brand-sub">Gizli yönetim paneli</div>
+        </div>
+      </div>
+      <form id="loginForm">
+        <label>Kullanıcı Adı</label>
+        <input id="usernameInput" type="text" autocomplete="username" placeholder="fishtimeadmincan" />
+        <label>Şifre</label>
+        <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Şifre" />
+        <div class="login-actions">
+          <button class="btn primary" id="loginButton" type="submit">Panele Gir</button>
+          <button class="btn ghost" id="clearLoginButton" type="button">Temizle</button>
+        </div>
+      </form>
+      <div class="status" id="loginStatus"></div>
+    </div>
+  </section>
+
+  <section class="shell hidden" id="appShell">
+    <aside class="sidebar glass">
+      <div class="brand-row side-brand">
+        <div class="logo-box small"><img src="../logo.png" alt="FishTime" /></div>
+        <div>
+          <div class="brand-title small">FishTime</div>
+          <div class="brand-sub">Gece yönetim merkezi</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-tab="home">Ana Sayfa <span>Özet</span></button>
+        <button class="nav-btn" data-tab="users">Kullanıcılar <span>Üyelikler</span></button>
+        <button class="nav-btn" data-tab="messages">Mesajlar <span>İletişim</span></button>
+        <button class="nav-btn" data-tab="codes">Kod Üretici <span>Kodlar</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="tiny">Bu sayfa ana sitede görünmez. Oturum yalnızca bu sekmede tutulur.</div>
+        <button class="btn ghost full" id="refreshAllButton" type="button">Verileri Yenile</button>
+        <button class="btn ghost full" id="logoutButton" type="button">Güvenli Çıkış</button>
+      </div>
+    </aside>
+
+    <main class="content glass">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Ana Sayfa</h1>
+          <p id="pageSubtitle">Sistemin genel özetini ve son hareketleri burada görürsün.</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="chip" id="sessionChip">Yönetici: fishtimeadmincan</div>
+          <div class="chip" id="globalStatus">Hazır</div>
+        </div>
+      </header>
+
+      <section class="tab active" data-page="home">
+        <div class="hero-grid">
+          <div class="panel hero-panel">
+            <h2>FishTime ekosistemini tek yerden yönet.</h2>
+            <p>Mevcut çalışan site ve masaüstü akışlarına dokunmadan kullanıcı, mesaj ve kod yönetimi burada toplandı.</p>
+            <div class="hero-stats">
+              <div class="mini-stat"><strong id="metricUsers">0</strong><span>Toplam kullanıcı</span></div>
+              <div class="mini-stat"><strong id="metricUnread">0</strong><span>Okunmamış mesaj</span></div>
+              <div class="mini-stat"><strong id="metricUsedCodes">0</strong><span>Kullanılan kod</span></div>
+            </div>
+          </div>
+          <div class="panel side-info">
+            <h3>Sistem Durumu</h3>
+            <div class="info-line"><span>API</span><strong id="apiStatusText">Bağlanıyor...</strong></div>
+            <div class="info-line"><span>Oturum</span><strong id="sessionStatusText">Kontrol ediliyor</strong></div>
+            <div class="info-line"><span>Son yenileme</span><strong id="lastRefreshText">Henüz yok</strong></div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><span>Toplam Kullanıcı</span><strong id="statTotalUsers">0</strong></div>
+          <div class="stat-card"><span>Aktif Kullanıcı</span><strong id="statActiveUsers">0</strong></div>
+          <div class="stat-card"><span>Süresi Biten</span><strong id="statExpiredUsers">0</strong></div>
+          <div class="stat-card"><span>Toplam Kod</span><strong id="statTotalCodes">0</strong></div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <div class="section-head"><h3>Son Kayıt Olanlar</h3></div>
+            <div id="recentUsersList" class="stack-list"></div>
+          </div>
+          <div class="panel">
+            <div class="section-head"><h3>Süresi Yakın Bitecekler</h3></div>
+            <div id="expiringUsersList" class="stack-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab" data-page="users">
+        <div class="split-wide">
+          <div class="panel">
+            <div class="section-head row-between"><h3>Kullanıcılar</h3><div class="badge" id="userCountBadge">0</div></div>
+            <div class="toolbar">
+              <input id="userSearchInput" type="text" placeholder="E-posta ile ara..." />
+              <button class="btn ghost" id="userRefreshButton" type="button">Yenile</button>
+            </div>
+            <div class="list-box" id="usersList"></div>
+          </div>
+          <div class="panel" id="userDetail"></div>
+        </div>
+      </section>
+
+      <section class="tab" data-page="messages">
+        <div class="split-wide">
+          <div class="panel">
+            <div class="section-head row-between"><h3>Mesajlar</h3><div class="badge" id="messageUnreadBadge">0</div></div>
+            <div class="toolbar">
+              <input id="messageSearchInput" type="text" placeholder="E-posta veya mesaj ara..." />
+              <button class="btn ghost" id="messageRefreshButton" type="button">Yenile</button>
+            </div>
+            <div class="list-box" id="conversationList"></div>
+          </div>
+          <div class="panel" id="messageDetail"></div>
+        </div>
+      </section>
+
+      <section class="tab" data-page="codes">
+        <div class="split-wide codes-split">
+          <div class="panel">
+            <div class="section-head"><h3>Kod Üretici</h3></div>
+            <div class="toolbar vertical">
+              <select id="planSelect">
+                <option value="trial_2h">2 Saat</option>
+                <option value="day_1">1 Gün</option>
+                <option value="day_7">7 Gün</option>
+                <option value="day_15">15 Gün</option>
+                <option value="day_30">30 Gün</option>
+              </select>
+              <button class="btn primary" id="createCodeButton" type="button">Kod Oluştur</button>
+            </div>
+            <div id="codeCreateResult" class="result-wrap"></div>
+            <div class="section-head top-gap"><h3>Kod Özeti</h3></div>
+            <div id="codeSummaryList" class="stack-list"></div>
+          </div>
+          <div class="panel">
+            <div class="section-head row-between"><h3>Tüm Kodlar</h3><div class="badge" id="codeCountBadge">0</div></div>
+            <div class="toolbar">
+              <input id="codeSearchInput" type="text" placeholder="Kod ara..." />
+              <button class="btn ghost" id="codeRefreshButton" type="button">Yenile</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Kod</th>
+                    <th>Plan</th>
+                    <th>Durum</th>
+                    <th>Kullanan</th>
+                    <th>Oluşturulma</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="codesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <script src="./admin.js"></script>
+</body>
+</html>
