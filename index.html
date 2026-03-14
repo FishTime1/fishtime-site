@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
@@ -415,7 +415,7 @@
 
       <div class="video-box">
         <iframe
-          class="video-frame"
+          class="video-frame" id="setupVideoFrame"
           src="https://www.youtube.com/embed/jCRnwHDHFmA?start=225"
           title="FishTime Kurulum Videosu"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -423,7 +423,7 @@
         </iframe>
 
         <div class="video-actions">
-          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s" target="_blank">YouTube'da Aç</a>
+          <a class="btn btn-primary" id="setupVideoLink" href="https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s" target="_blank">YouTube'da Aç</a>
           <a class="btn btn-secondary" href="dashboard.html">Panele Git</a>
         </div>
       </div>
@@ -433,5 +433,31 @@
       © 2026 FishTime - Tüm hakları saklıdır.
     </div>
   </div>
+  <script>
+    (function () {
+      const API_BASE = "https://fishtime-api.onrender.com";
+      const fallback = {
+        setup_video_watch_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
+        setup_video_embed_url: "https://www.youtube.com/embed/jCRnwHDHFmA?start=225",
+      };
+      const frame = document.getElementById("setupVideoFrame");
+      const link = document.getElementById("setupVideoLink");
+      if (!frame || !link) return;
+
+      const applyConfig = (config) => {
+        const next = { ...fallback, ...(config || {}) };
+        frame.src = next.setup_video_embed_url || fallback.setup_video_embed_url;
+        link.href = next.setup_video_watch_url || fallback.setup_video_watch_url;
+      };
+
+      applyConfig(fallback);
+
+      fetch(`${API_BASE}/v1/site-config`, { headers: { Accept: "application/json" } })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => { if (data) applyConfig(data); })
+        .catch(() => {});
+    })();
+  </script>
 </body>
 </html>
+
