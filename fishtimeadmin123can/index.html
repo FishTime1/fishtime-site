@@ -45,6 +45,7 @@
         <button class="nav-btn" data-tab="users">Kullanıcılar <span>Üyelikler</span></button>
         <button class="nav-btn" data-tab="messages">Mesajlar <span>İletişim</span></button>
         <button class="nav-btn" data-tab="codes">Kod Üretici <span>Kodlar</span></button>
+        <button class="nav-btn" data-tab="video">Kurulum Videosu <span>Site ayarı</span></button>
       </nav>
       <div class="sidebar-foot">
         <div class="tiny">Bu sayfa ana sitede görünmez. Oturum yalnızca bu sekmede tutulur.</div>
@@ -173,9 +174,29 @@
           </div>
         </div>
       </section>
+    
+      <section class="tab" data-page="video">
+        <div class="split-grid">
+          <div class="panel">
+            <div class="section-head"><h3>Kurulum Videosu</h3></div>
+            <p class="brand-sub">Yeni YouTube linkini yapıştır, yayınla ve anasayfadaki videoyu tek yerden güncelle.</p>
+            <label>Yeni YouTube Linki</label>
+            <input id="setupVideoUrlInput" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+            <div class="action-row">
+              <button class="btn primary" id="saveVideoConfigButton" type="button">Yayınla</button>
+              <button class="btn ghost" id="reloadVideoConfigButton" type="button">Yenile</button>
+            </div>
+            <div class="status" id="videoConfigStatus"></div>
+          </div>
+          <div class="panel" id="videoConfigDetail"></div>
+        </div>
+      </section>
     </main>
   </section>
 
   <script src="./admin.js"></script>
 </body>
 </html>
+
+
+
