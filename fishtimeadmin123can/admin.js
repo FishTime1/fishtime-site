@@ -1,4 +1,4 @@
-﻿const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : "https://api.fishtime.online";
+﻿const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : "https://fishtime-api.onrender.com";
 const PLAN_LABELS = { trial_2h: "2 Saat", day_1: "1 Gün", day_7: "7 Gün", day_15: "15 Gün", day_30: "30 Gün" };
 const PLAN_SECONDS = { trial_2h: 7200, day_1: 86400, day_7: 604800, day_15: 1296000, day_30: 2592000 };
 const TAB_META = {
@@ -10,6 +10,7 @@ const TAB_META = {
 
 const state = {
   token: sessionStorage.getItem("ft_admin_token") || "",
+  adminKey: sessionStorage.getItem("ft_admin_key") || "",
   username: sessionStorage.getItem("ft_admin_username") || "",
   stats: null,
   users: [],
@@ -103,12 +104,12 @@ function mapError(detail) {
 }
 function setLoginStatus(message, isError = false) { el.loginStatus.textContent = message || ""; el.loginStatus.classList.toggle("error", !!isError); }
 function setGlobalStatus(message, isError = false) { el.globalStatus.textContent = message || "Hazır"; el.globalStatus.style.color = isError ? "#fecdd3" : "#dbeafe"; }
-function clearSession() { state.token = ""; state.username = ""; sessionStorage.removeItem("ft_admin_token"); sessionStorage.removeItem("ft_admin_username"); }
+function clearSession() { state.token = ""; state.adminKey = ""; state.username = ""; sessionStorage.removeItem("ft_admin_token"); sessionStorage.removeItem("ft_admin_key"); sessionStorage.removeItem("ft_admin_username"); }
 function showLogin() { el.loginScreen.classList.remove("hidden"); el.appShell.classList.add("hidden"); el.sessionStatusText.textContent = "Giriş bekleniyor"; }
 function showApp() { el.loginScreen.classList.add("hidden"); el.appShell.classList.remove("hidden"); el.sessionChip.textContent = `Yönetici: ${state.username || "fishtimeadmincan"}`; el.sessionStatusText.textContent = "Yetkili oturum açık"; }
 function setActiveTab(tab) { el.navButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tab)); el.tabs.forEach((p) => p.classList.toggle("active", p.dataset.page === tab)); const [title, subtitle] = TAB_META[tab] || TAB_META.home; el.pageTitle.textContent = title; el.pageSubtitle.textContent = subtitle; }
 async function api(path, options = {}) {
-  const headers = new Headers(options.headers || {}); headers.set("Accept", "application/json"); if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json"); if (state.token) headers.set("X-Admin-Token", state.token);
+  const headers = new Headers(options.headers || {}); headers.set("Accept", "application/json"); if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json"); if (state.token) headers.set("X-Admin-Token", state.token); if (state.adminKey) headers.set("X-Admin-Key", state.adminKey);
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const text = await res.text(); let data = null; if (text) { try { data = JSON.parse(text); } catch { data = { raw: text }; } }
   if (!res.ok) { if (res.status === 401) clearSession(); throw new Error(mapError(data?.detail || data?.message || res.statusText)); }
@@ -231,7 +232,7 @@ function renderCodes() {
 }
 
 async function refreshAllData(forceSelect = false) {
-  if (!state.token || state.loading) return;
+  if ((!state.token && !state.adminKey) || state.loading) return;
   state.loading = true; setGlobalStatus("Veriler yenileniyor..."); el.apiStatusText.innerHTML = infoStatus("API ile konuşuluyor");
   try {
     const [stats, users, messages, codes] = await Promise.all([api("/v1/admin/stats"), api("/v1/admin/users"), api("/v1/admin/messages"), api("/v1/admin/codes")]);
@@ -259,15 +260,35 @@ async function createCode() {
 async function handleLogin(event) {
   event.preventDefault(); const username = el.usernameInput.value.trim(); const password = el.passwordInput.value;
   if (!username || !password) { setLoginStatus("Kullanıcı adı ve şifre gerekli.", true); return; }
+  if (username !== "fishtimeadmincan") { setLoginStatus("Kullanıcı adı hatalı.", true); return; }
   el.loginButton.disabled = true; setLoginStatus("Giriş yapılıyor...");
   try {
-    const data = await api("/v1/admin/web-login", { method: "POST", body: JSON.stringify({ username, password }) });
-    state.token = data.token; state.username = data.username || username; sessionStorage.setItem("ft_admin_token", state.token); sessionStorage.setItem("ft_admin_username", state.username);
-    setLoginStatus(""); showApp(); await refreshAllData(true);
-  } catch (err) { setLoginStatus(err.message, true); }
+    let loggedIn = false;
+    try {
+      const data = await api("/v1/admin/web-login", { method: "POST", body: JSON.stringify({ username, password }) });
+      state.token = data.token;
+      state.adminKey = "";
+      state.username = data.username || username;
+      sessionStorage.setItem("ft_admin_token", state.token);
+      sessionStorage.removeItem("ft_admin_key");
+      sessionStorage.setItem("ft_admin_username", state.username);
+      loggedIn = true;
+    } catch (tokenErr) {
+      state.token = "";
+      state.adminKey = password;
+      await api("/v1/admin/stats");
+      state.username = username;
+      sessionStorage.removeItem("ft_admin_token");
+      sessionStorage.setItem("ft_admin_key", state.adminKey);
+      sessionStorage.setItem("ft_admin_username", state.username);
+      loggedIn = true;
+    }
+    if (loggedIn) {
+      setLoginStatus(""); showApp(); await refreshAllData(true);
+    }
+  } catch (err) { clearSession(); setLoginStatus(err.message, true); }
   finally { el.loginButton.disabled = false; }
 }
-
 function bind() {
   el.loginForm.addEventListener("submit", handleLogin);
   el.clearLoginButton.addEventListener("click", () => { el.usernameInput.value = ""; el.passwordInput.value = ""; setLoginStatus(""); });
@@ -286,7 +307,11 @@ function bind() {
 (async function bootstrap() {
   bind();
   el.usernameInput.value = state.username || "fishtimeadmincan";
-  if (!state.token) { showLogin(); return; }
+  if (!state.token && !state.adminKey) { showLogin(); return; }
   showApp();
   try { await refreshAllData(true); } catch { showLogin(); }
 })();
+
+
+
+
