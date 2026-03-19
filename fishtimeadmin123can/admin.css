@@ -204,3 +204,7 @@ table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:14px 16p
   word-break: break-all;
   line-height: 1.7;
 }
+
+.mono-link {
+  white-space: pre-wrap;
+}
