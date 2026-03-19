@@ -5,13 +5,14 @@ const DEFAULT_SITE_CONFIG = {
   setup_video_raw_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
   setup_video_watch_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
   setup_video_embed_url: "https://www.youtube.com/embed/jCRnwHDHFmA?start=225",
+  public_note: "",
 };
 const TAB_META = {
   home: ["Ana Sayfa", "Sistemin genel özetini ve son hareketleri burada görürsün."],
   users: ["Kullanıcılar", "Üyelikleri yönet, süre ekle, cihaz sıfırla ve hesap sil."],
   messages: ["Mesajlar", "Kullanıcı konuşmalarını aç, cevap ver ve temizle."],
   codes: ["Kod Üretici", "Yeni kod üret, listele ve gerektiğinde sil."],
-  video: ["Kurulum Videosu", "Anasayfadaki kurulum videosunu YouTube linki ile yönet."]
+  video: ["Site Ayarları", "Kurulum videosunu ve anasayfadaki not alanını buradan yönet."]
 };
 
 const state = {
@@ -79,6 +80,10 @@ const el = {
   reloadVideoConfigButton: document.getElementById("reloadVideoConfigButton"),
   videoConfigStatus: document.getElementById("videoConfigStatus"),
   videoConfigDetail: document.getElementById("videoConfigDetail"),
+  siteNoteInput: document.getElementById("siteNoteInput"),
+  saveNoteConfigButton: document.getElementById("saveNoteConfigButton"),
+  reloadNoteConfigButton: document.getElementById("reloadNoteConfigButton"),
+  noteConfigStatus: document.getElementById("noteConfigStatus"),
   navButtons: [...document.querySelectorAll(".nav-btn")],
   tabs: [...document.querySelectorAll(".tab")],
 };
@@ -112,7 +117,9 @@ function mapError(detail) {
     message_not_found: "Mesaj bulunamadı.",
     code_not_found: "Kod bulunamadı.",
     invalid_plan: "Geçersiz plan seçildi.",
-    invalid_setup_video_url: "Geçerli bir YouTube linki gir."
+    invalid_setup_video_url: "Geçerli bir YouTube linki gir.",
+    invalid_public_note: "Not metni çok uzun.",
+    invalid_site_config_payload: "Kaydedilecek bir ayar bulunamadı."
   }[String(detail || "")] || String(detail || "Bilinmeyen hata");
 }
 function setLoginStatus(message, isError = false) { el.loginStatus.textContent = message || ""; el.loginStatus.classList.toggle("error", !!isError); }
@@ -183,12 +190,20 @@ function setVideoConfigStatus(message, isError = false) {
   el.videoConfigStatus.textContent = message || "";
   el.videoConfigStatus.classList.toggle("error", !!isError);
 }
+function setNoteConfigStatus(message, isError = false) {
+  if (!el.noteConfigStatus) return;
+  el.noteConfigStatus.textContent = message || "";
+  el.noteConfigStatus.classList.toggle("error", !!isError);
+}
 function renderVideoSettings() {
-  if (!el.videoConfigDetail || !el.setupVideoUrlInput) return;
+  if (!el.videoConfigDetail || !el.setupVideoUrlInput || !el.siteNoteInput) return;
   const config = { ...DEFAULT_SITE_CONFIG, ...(state.siteConfig || {}) };
   state.siteConfig = config;
   if (document.activeElement !== el.setupVideoUrlInput) {
     el.setupVideoUrlInput.value = config.setup_video_raw_url || config.setup_video_watch_url || "";
+  }
+  if (document.activeElement !== el.siteNoteInput) {
+    el.siteNoteInput.value = config.public_note || "";
   }
   el.videoConfigDetail.innerHTML = `
     <div class="section-head"><h3>Canlı Önizleme</h3></div>
@@ -196,6 +211,7 @@ function renderVideoSettings() {
     <iframe class="admin-video-frame" src="${html(config.setup_video_embed_url)}" title="Kurulum Videosu Önizleme" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
     <div class="link-card"><span>YouTube Linki</span><a href="${html(config.setup_video_watch_url)}" target="_blank" rel="noreferrer">${html(config.setup_video_watch_url)}</a></div>
     <div class="link-card"><span>Embed Linki</span><div class="mono-link">${html(config.setup_video_embed_url)}</div></div>
+    <div class="link-card"><span>Anasayfa Notu</span><div class="mono-link">${html(config.public_note || "Henüz not yayınlanmadı.")}</div></div>
   `;
 }
 
@@ -426,7 +442,44 @@ function bind() {
       }
     });
   }
-  el.logoutButton.addEventListener("click", () => { clearSession(); state.stats = null; state.users = []; state.messages = []; state.codes = []; state.siteConfig = { ...DEFAULT_SITE_CONFIG }; state.selectedUserId = null; state.selectedConversationId = null; state.selectedMessageId = null; el.passwordInput.value = ""; setVideoConfigStatus(""); renderVideoSettings(); showLogin(); setLoginStatus(""); });
+  if (el.saveNoteConfigButton) {
+    el.saveNoteConfigButton.addEventListener("click", async () => {
+      try {
+        el.saveNoteConfigButton.disabled = true;
+        setNoteConfigStatus("Not güncelleniyor...");
+        const data = await api("/v1/admin/site-config", {
+          method: "POST",
+          body: JSON.stringify({
+            public_note: String(el.siteNoteInput.value || ""),
+          }),
+        });
+        state.siteConfig = { ...DEFAULT_SITE_CONFIG, ...(data || {}) };
+        renderVideoSettings();
+        setNoteConfigStatus("Anasayfa notu güncellendi.");
+      } catch (err) {
+        setNoteConfigStatus(err.message, true);
+      } finally {
+        el.saveNoteConfigButton.disabled = false;
+      }
+    });
+  }
+  if (el.reloadNoteConfigButton) {
+    el.reloadNoteConfigButton.addEventListener("click", async () => {
+      try {
+        el.reloadNoteConfigButton.disabled = true;
+        setNoteConfigStatus("Not yenileniyor...");
+        const data = await api("/v1/admin/site-config");
+        state.siteConfig = { ...DEFAULT_SITE_CONFIG, ...(data || {}) };
+        renderVideoSettings();
+        setNoteConfigStatus("Güncel not yüklendi.");
+      } catch (err) {
+        setNoteConfigStatus(err.message, true);
+      } finally {
+        el.reloadNoteConfigButton.disabled = false;
+      }
+    });
+  }
+  el.logoutButton.addEventListener("click", () => { clearSession(); state.stats = null; state.users = []; state.messages = []; state.codes = []; state.siteConfig = { ...DEFAULT_SITE_CONFIG }; state.selectedUserId = null; state.selectedConversationId = null; state.selectedMessageId = null; el.passwordInput.value = ""; setVideoConfigStatus(""); setNoteConfigStatus(""); renderVideoSettings(); showLogin(); setLoginStatus(""); });
   el.userSearchInput.addEventListener("input", renderUsers);
   el.messageSearchInput.addEventListener("input", renderConversations);
   el.codeSearchInput.addEventListener("input", renderCodes);
