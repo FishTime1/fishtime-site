@@ -250,6 +250,33 @@
       margin-top: 18px;
     }
 
+    .info-banner {
+      margin: 22px auto 0;
+      max-width: 520px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(37,99,235,0.24);
+      box-shadow: 0 12px 40px rgba(2, 6, 23, 0.18);
+      color: #dbeafe;
+      line-height: 1.7;
+      backdrop-filter: blur(10px);
+    }
+
+    .info-banner strong {
+      color: white;
+    }
+
+    .info-banner a {
+      color: #7dd3fc;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .info-banner a:hover {
+      text-decoration: underline;
+    }
+
     .features {
       margin-top: 10px;
     }
@@ -329,6 +356,32 @@
       flex-wrap: wrap;
     }
 
+    .note-section {
+      margin-top: 42px;
+      text-align: left;
+    }
+
+    .note-box {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 22px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .note-box h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .note-text {
+      color: #dbeafe;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
     .footer {
       margin-top: 80px;
       text-align: center;
@@ -382,6 +435,11 @@
           <a class="btn btn-secondary" href="register.html">Kayıt Ol</a>
           <a class="btn btn-secondary" href="dashboard.html">Panele Git</a>
         </div>
+
+        <div class="info-banner">
+          <strong>Telegram Adresimiz:</strong>
+          <a href="https://t.me/fishtimeonline" target="_blank" rel="noreferrer">@fishtimeonline</a>
+        </div>
       </div>
     </section>
 
@@ -429,6 +487,18 @@
       </div>
     </section>
 
+    <section class="note-section" id="publicNoteSection" style="display:none;">
+      <h2 class="section-title">Not</h2>
+      <p class="section-sub">
+        Güncel bilgilendirme ve duyurular burada yayınlanır.
+      </p>
+
+      <div class="note-box">
+        <h3>FishTime Duyurusu</h3>
+        <div class="note-text" id="publicNoteText"></div>
+      </div>
+    </section>
+
     <div class="footer">
       © 2026 FishTime - Tüm hakları saklıdır.
     </div>
@@ -439,15 +509,21 @@
       const fallback = {
         setup_video_watch_url: "https://www.youtube.com/watch?v=jCRnwHDHFmA&t=225s",
         setup_video_embed_url: "https://www.youtube.com/embed/jCRnwHDHFmA?start=225",
+        public_note: "",
       };
       const frame = document.getElementById("setupVideoFrame");
       const link = document.getElementById("setupVideoLink");
-      if (!frame || !link) return;
+      const noteSection = document.getElementById("publicNoteSection");
+      const noteText = document.getElementById("publicNoteText");
+      if (!frame || !link || !noteSection || !noteText) return;
 
       const applyConfig = (config) => {
         const next = { ...fallback, ...(config || {}) };
         frame.src = next.setup_video_embed_url || fallback.setup_video_embed_url;
         link.href = next.setup_video_watch_url || fallback.setup_video_watch_url;
+        const note = String(next.public_note || "").trim();
+        noteText.textContent = note;
+        noteSection.style.display = note ? "" : "none";
       };
 
       applyConfig(fallback);
